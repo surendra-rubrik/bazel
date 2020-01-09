@@ -98,41 +98,12 @@ function gcov_coverage() {
               mkdir -p "${COVERAGE_DIR}/$(dirname ${gcno_path})"
               cp "$ROOT/${gcno_path}" "${COVERAGE_DIR}/${gcno_path}"
           fi
-          # Invoke gcov to generate a code coverage report with the flags:
-          # -i              Output gcov file in an intermediate text format.
-          #                 The output is a single .gcov file per .gcda file.
-          #                 No source code is required.
-          # -o directory    The directory containing the .gcno and
-          #                 .gcda data files.
-          # "${gcda"}       The input file name. gcov is looking for data files
-          #                 named after the input filename without its extension.
-          # gcov produces files called <source file name>.gcov in the current
-          # directory. These contain the coverage information of the source file
-          # they correspond to. One .gcov file is produced for each source
-          # (or header) file containing code which was compiled to produce the
-          # .gcda files.
-          # Don't generate branch coverage (-b) because of a gcov issue that
-          # segfaults when both -i and -b are used (see
-          # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=84879).
+          
           "${GCOV}" -i -o "$(dirname ${gcda})" "${gcda}" &> "$gcov_log"
 
-          # Go through all the files that were created by the gcov command above
-          # and append their content to the output .gcov file.
-          #
-          # For each source file gcov outputs to stdout something like this:
-          #
-          # File 'examples/cpp/hello-lib.cc'
-          # Lines executed:100.00% of 8
-          # Creating 'hello-lib.cc.gcov'
-          #
-          # We grep the names of the files that were created from that output.
-          cat "$gcov_log" | grep "Creating" | cut -d " " -f 2 | cut -d"'" -f2 | \
-              while read gcov_file; do
-            echo "Processing $gcov_file"
-            cat "$gcov_file" >> "$output_file"
-            # Remove the intermediate gcov file because it is not useful anymore.
-            rm -f "$gcov_file"
-          done
+	  # For Test purpose assuming gcov version as 5.4.0 
+          cat "$(basename ${gcda}).gcov" >> "$output_file"
+          rm -f "$(basename ${gcda}).gcov"
       fi
     fi
   done < "${COVERAGE_MANIFEST}"
